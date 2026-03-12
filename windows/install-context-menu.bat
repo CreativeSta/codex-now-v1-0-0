@@ -2,11 +2,14 @@
 setlocal EnableExtensions DisableDelayedExpansion
 chcp 65001 >nul
 
-set "LAUNCHER=%USERPROFILE%\bin\codex-now.cmd"
+set "LAUNCHER=%USERPROFILE%\bin\codex-now.ps1"
 set "ROOT=HKCU\Software\Classes"
 set "ICON=%SystemRoot%\System32\SHELL32.dll,70"
-set "LABEL=Open with Codex Now"
-set "CODEX_EXE_ICON="
+set "LABEL=codex now"
+set "DEFAULT_ICON=%USERPROFILE%\bin\codex-now-hourglass.ico"
+set "ICON_CONFIG_FILE=%USERPROFILE%\.codex-now-menu-icon"
+set "CUSTOM_ICON="
+set "MENU_COMMAND=powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"%LAUNCHER%\" \"%%V \""
 
 echo.
 echo ========================================
@@ -21,14 +24,15 @@ if not exist "%LAUNCHER%" (
     exit /b 1
 )
 
-call :build_label
-call :detect_codex_icon
+if exist "%DEFAULT_ICON%" set "ICON=%DEFAULT_ICON%"
+call :load_custom_icon
 echo [INFO] Icon source: %ICON%
 echo [INFO] Menu text: %LABEL%
+echo [INFO] Menu command: %MENU_COMMAND%
 
 reg add "%ROOT%\Directory\shell\CodexNow" /ve /d "%LABEL%" /f >nul
 reg add "%ROOT%\Directory\shell\CodexNow" /v "Icon" /d "%ICON%" /f >nul
-reg add "%ROOT%\Directory\shell\CodexNow\command" /ve /d "\"%LAUNCHER%\" \"%%V\"" /f >nul
+reg add "%ROOT%\Directory\shell\CodexNow\command" /ve /d "%MENU_COMMAND%" /f >nul
 if errorlevel 1 (
     echo [ERROR] Failed to add folder context menu.
     exit /b 1
@@ -36,7 +40,7 @@ if errorlevel 1 (
 
 reg add "%ROOT%\Directory\Background\shell\CodexNow" /ve /d "%LABEL%" /f >nul
 reg add "%ROOT%\Directory\Background\shell\CodexNow" /v "Icon" /d "%ICON%" /f >nul
-reg add "%ROOT%\Directory\Background\shell\CodexNow\command" /ve /d "\"%LAUNCHER%\" \"%%V\"" /f >nul
+reg add "%ROOT%\Directory\Background\shell\CodexNow\command" /ve /d "%MENU_COMMAND%" /f >nul
 if errorlevel 1 (
     echo [ERROR] Failed to add folder background context menu.
     exit /b 1
@@ -44,7 +48,7 @@ if errorlevel 1 (
 
 reg add "%ROOT%\Drive\shell\CodexNow" /ve /d "%LABEL%" /f >nul
 reg add "%ROOT%\Drive\shell\CodexNow" /v "Icon" /d "%ICON%" /f >nul
-reg add "%ROOT%\Drive\shell\CodexNow\command" /ve /d "\"%LAUNCHER%\" \"%%V\"" /f >nul
+reg add "%ROOT%\Drive\shell\CodexNow\command" /ve /d "%MENU_COMMAND%" /f >nul
 if errorlevel 1 (
     echo [ERROR] Failed to add drive context menu.
     exit /b 1
@@ -57,22 +61,9 @@ echo      3) Drive
 echo.
 exit /b 0
 
-:detect_codex_icon
-for /f "usebackq delims=" %%I in (`where.exe codex 2^>nul`) do (
-    if not defined CODEX_EXE_ICON (
-        if /i "%%~xI"==".exe" (
-            if exist "%%~fI" set "CODEX_EXE_ICON=%%~fI"
-        )
-    )
-)
-
-if defined CODEX_EXE_ICON (
-    set "ICON=%CODEX_EXE_ICON%"
-)
-exit /b 0
-
-:build_label
-for /f "usebackq delims=" %%L in (`powershell -NoProfile -Command "[char]36890+[char]36807+'codex now '+[char]25171+[char]24320"`) do (
-    set "LABEL=%%L"
-)
+:load_custom_icon
+if not exist "%ICON_CONFIG_FILE%" exit /b 0
+set /p CUSTOM_ICON=<"%ICON_CONFIG_FILE%"
+if not defined CUSTOM_ICON exit /b 0
+set "ICON=%CUSTOM_ICON%"
 exit /b 0

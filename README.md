@@ -64,6 +64,18 @@
 
 - 运行：`windows\diagnose.bat`
 
+## 右键菜单图标切换
+
+脚本：
+- `windows\set-menu-icon.bat`
+
+可选项：
+- `windows\set-menu-icon.bat codex`（使用 Codex 程序图标）
+- `windows\set-menu-icon.bat system`（系统默认样式）
+- `windows\set-menu-icon.bat legacy`（旧版样式）
+- `windows\set-menu-icon.bat custom "C:\path\icon.ico"`（自定义 ico）
+- `windows\set-menu-icon.bat custom "C:\path\app.exe,0"`（使用 exe/dll 内图标）
+
 ## 发布打包（zip + sha256）
 
 脚本：

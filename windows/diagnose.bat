@@ -4,6 +4,7 @@ chcp 65001 >nul
 
 set "USER_BIN=%USERPROFILE%\bin"
 set "LAUNCHER=%USER_BIN%\codex-now.cmd"
+set "LAUNCHER_PS=%USER_BIN%\codex-now.ps1"
 set "LAST_DIR_FILE=%USERPROFILE%\.codex-now-last-dir"
 set "ROOT=HKCU\Software\Classes"
 
@@ -25,6 +26,12 @@ if exist "%LAUNCHER%" (
     echo   [OK] Launcher exists: %LAUNCHER%
 ) else (
     echo   [ERROR] Launcher missing: %LAUNCHER%
+)
+
+if exist "%LAUNCHER_PS%" (
+    echo   [OK] PS launcher exists: %LAUNCHER_PS%
+) else (
+    echo   [ERROR] PS launcher missing: %LAUNCHER_PS%
 )
 
 if exist "%LAST_DIR_FILE%" (
@@ -64,6 +71,7 @@ call :check_key "%ROOT%\Directory\shell\CodexNow" "Directory menu"
 call :check_key "%ROOT%\Directory\Background\shell\CodexNow" "Background menu"
 call :check_key "%ROOT%\Drive\shell\CodexNow" "Drive menu"
 call :show_icon "%ROOT%\Directory\shell\CodexNow"
+call :show_command "%ROOT%\Directory\shell\CodexNow\command"
 echo.
 
 echo [Tips]
@@ -88,4 +96,12 @@ for /f "tokens=1,2,*" %%A in ('reg query "%~1" /v Icon 2^>nul ^| findstr /I "Ico
     exit /b 0
 )
 echo   [INFO] Menu icon: (not set)
+exit /b 0
+
+:show_command
+for /f "tokens=1,2,*" %%A in ('reg query "%~1" /ve 2^>nul ^| findstr /I "REG_"') do (
+    echo   [INFO] Menu command: %%C
+    exit /b 0
+)
+echo   [INFO] Menu command: (not set)
 exit /b 0

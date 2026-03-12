@@ -45,7 +45,12 @@ if defined TARGET_DIR (
     if "%FIRST_CHAR%"=="\"" if "%LAST_CHAR%"=="\"" (
         set "TARGET_DIR=%TARGET_DIR:~1,-1%"
     )
+    if "%FIRST_CHAR%"=="'" if "%LAST_CHAR%"=="'" (
+        set "TARGET_DIR=%TARGET_DIR:~1,-1%"
+    )
 )
+
+call :normalize_target_dir
 
 if not defined TARGET_DIR (
     set "TARGET_DIR=%USERPROFILE%"
@@ -140,6 +145,24 @@ if not "!WORK!"=="!INPUT!" (
     exit /b 1
 )
 
+set "WORK=!INPUT:;=!"
+if not "!WORK!"=="!INPUT!" (
+    endlocal
+    exit /b 1
+)
+
+set "WORK=!INPUT:(=!"
+if not "!WORK!"=="!INPUT!" (
+    endlocal
+    exit /b 1
+)
+
+set "WORK=!INPUT:)=!"
+if not "!WORK!"=="!INPUT!" (
+    endlocal
+    exit /b 1
+)
+
 endlocal
 exit /b 0
 
@@ -153,7 +176,7 @@ exit /b 0
 
 :validate_codex_candidate
 set "CANDIDATE=%~1"
-if not exist "%CANDIDATE%" exit /b 0
+if not exist "%CANDIDATE%" exit /b 1
 
 for %%E in ("%CANDIDATE%") do (
     set "CANDIDATE_NAME=%%~nE"
@@ -165,6 +188,23 @@ if /i not "%CANDIDATE_NAME%"=="codex" exit /b 0
 if /i "%CANDIDATE_EXT%"==".cmd" set "CODEX_PATH=%CANDIDATE%"
 if /i "%CANDIDATE_EXT%"==".exe" set "CODEX_PATH=%CANDIDATE%"
 if /i "%CANDIDATE_EXT%"==".bat" set "CODEX_PATH=%CANDIDATE%"
+exit /b 0
+
+:normalize_target_dir
+if not defined TARGET_DIR exit /b 0
+
+setlocal EnableDelayedExpansion
+set "OUT=!TARGET_DIR!"
+
+:trim_loop
+if "!OUT!"=="" goto trim_done
+if not "!OUT:~-1!"=="\" goto trim_done
+if "!OUT:~1,2!"==":\" if "!OUT:~3!"=="" goto trim_done
+set "OUT=!OUT:~0,-1!"
+goto trim_loop
+
+:trim_done
+endlocal & set "TARGET_DIR=%OUT%"
 exit /b 0
 
 :fail
