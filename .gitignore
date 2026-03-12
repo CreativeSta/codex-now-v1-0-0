@@ -1,0 +1,12 @@
+# Release artifacts
+release/
+*.zip
+*.zip.sha256
+
+# Local temp/test dirs
+tmp/
+
+# OS/editor noise
+Thumbs.db
+.DS_Store
+*.log
