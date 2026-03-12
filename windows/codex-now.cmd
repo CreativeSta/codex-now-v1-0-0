@@ -39,6 +39,14 @@ if not defined TARGET_DIR (
     )
 )
 
+if defined TARGET_DIR (
+    set "FIRST_CHAR=%TARGET_DIR:~0,1%"
+    set "LAST_CHAR=%TARGET_DIR:~-1%"
+    if "%FIRST_CHAR%"=="\"" if "%LAST_CHAR%"=="\"" (
+        set "TARGET_DIR=%TARGET_DIR:~1,-1%"
+    )
+)
+
 if not defined TARGET_DIR (
     set "TARGET_DIR=%USERPROFILE%"
 )
@@ -68,9 +76,7 @@ if not defined CODEX_PATH (
     goto fail
 )
 
-> "%LAST_DIR_FILE%" (
-    set /p ="%TARGET_DIR%" <nul
-)
+> "%LAST_DIR_FILE%" echo(%TARGET_DIR%
 
 echo [INFO] Working directory: "%TARGET_DIR%"
 if "%FAST_MODE%"=="1" (

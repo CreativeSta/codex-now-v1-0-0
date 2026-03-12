@@ -29,8 +29,10 @@ if exist "%LAUNCHER%" (
 
 if exist "%LAST_DIR_FILE%" (
     set /p LAST_DIR=<"%LAST_DIR_FILE%"
+    setlocal EnableDelayedExpansion
     echo   [OK] Last dir file exists: %LAST_DIR_FILE%
-    echo        Saved dir: "%LAST_DIR%"
+    echo        Saved dir: "!LAST_DIR!"
+    endlocal
 ) else (
     echo   [INFO] Last dir file not found yet: %LAST_DIR_FILE%
 )
@@ -61,6 +63,7 @@ echo [Registry]
 call :check_key "%ROOT%\Directory\shell\CodexNow" "Directory menu"
 call :check_key "%ROOT%\Directory\Background\shell\CodexNow" "Background menu"
 call :check_key "%ROOT%\Drive\shell\CodexNow" "Drive menu"
+call :show_icon "%ROOT%\Directory\shell\CodexNow"
 echo.
 
 echo [Tips]
@@ -77,4 +80,12 @@ if errorlevel 1 (
 ) else (
     echo   [OK] %~2
 )
+exit /b 0
+
+:show_icon
+for /f "tokens=1,2,*" %%A in ('reg query "%~1" /v Icon 2^>nul ^| findstr /I "Icon"') do (
+    echo   [INFO] Menu icon: %%C
+    exit /b 0
+)
+echo   [INFO] Menu icon: (not set)
 exit /b 0
