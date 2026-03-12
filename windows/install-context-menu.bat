@@ -9,7 +9,7 @@ set "LABEL=codex now"
 set "DEFAULT_ICON=%USERPROFILE%\bin\codex-now-hourglass.ico"
 set "ICON_CONFIG_FILE=%USERPROFILE%\.codex-now-menu-icon"
 set "CUSTOM_ICON="
-set "MENU_COMMAND=powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"%LAUNCHER%\" \"%%V \""
+set "MENU_COMMAND=powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -WindowStyle Hidden -File \"%LAUNCHER%\" \"%%V \""
 
 echo.
 echo ========================================

@@ -74,7 +74,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
-powershell -NoProfile -ExecutionPolicy Bypass -File "%ICON_GENERATOR%" -OutputPath "%DEFAULT_ICON%" >nul 2>&1
+powershell -NoProfile -ExecutionPolicy RemoteSigned -File "%ICON_GENERATOR%" -OutputPath "%DEFAULT_ICON%" >nul 2>&1
 if not exist "%DEFAULT_ICON%" (
     echo [WARN] Failed to generate default hourglass icon.
 ) else (

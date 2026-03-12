@@ -7,10 +7,27 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 Add-Type -AssemblyName System.Windows.Forms
 
+$enableLaunchLog = $env:CODEX_NOW_DEBUG -eq "1"
+$maxLogBytes = 262144
 $logFile = Join-Path $env:USERPROFILE ".codex-now-launch.log"
 function Write-LaunchLog([string]$message) {
+    if (-not $enableLaunchLog) { return }
     $line = "$(Get-Date -Format s)  $message"
-    Add-Content -LiteralPath $logFile -Value $line -Encoding UTF8
+    try {
+        if (Test-Path -LiteralPath $logFile) {
+            $logSize = (Get-Item -LiteralPath $logFile).Length
+            if ($logSize -ge $maxLogBytes) {
+                $backupLog = "$logFile.1"
+                if (Test-Path -LiteralPath $backupLog) {
+                    Remove-Item -LiteralPath $backupLog -Force -ErrorAction SilentlyContinue
+                }
+                Move-Item -LiteralPath $logFile -Destination $backupLog -Force
+            }
+        }
+        Add-Content -LiteralPath $logFile -Value $line -Encoding UTF8
+    } catch {
+        # Keep launcher resilient even if logging fails.
+    }
 }
 
 $mainLauncher = Join-Path $env:USERPROFILE "bin\codex-now.cmd"
@@ -38,7 +55,8 @@ if (-not (Test-Path -LiteralPath $TargetDir -PathType Container)) {
 }
 
 $TargetDir = [System.IO.Path]::GetFullPath($TargetDir)
-if ($TargetDir.Length -gt 3) {
+$targetRoot = [System.IO.Path]::GetPathRoot($TargetDir)
+if ($TargetDir.Length -gt $targetRoot.Length) {
     $TargetDir = $TargetDir.TrimEnd('\')
 }
 
