@@ -2,6 +2,9 @@
 setlocal EnableExtensions DisableDelayedExpansion
 chcp 65001 >nul
 
+set "PAUSE_ON_EXIT=1"
+if /i "%~1"=="--no-pause" set "PAUSE_ON_EXIT=0"
+
 set "SCRIPT_DIR=%~dp0"
 set "SRC_CMD=%SCRIPT_DIR%codex-now.cmd"
 set "SRC_EXPLORER_CMD=%SCRIPT_DIR%codex-now-explorer.cmd"
@@ -20,58 +23,44 @@ echo   Codex Now - Windows Install
 echo ========================================
 echo.
 
-if not exist "%SRC_CMD%" (
-    echo [ERROR] Missing source file: %SRC_CMD%
-    exit /b 1
-)
-
-if not exist "%SRC_EXPLORER_CMD%" (
-    echo [ERROR] Missing source file: %SRC_EXPLORER_CMD%
-    exit /b 1
-)
-
-if not exist "%SRC_PS1%" (
-    echo [ERROR] Missing source file: %SRC_PS1%
-    exit /b 1
-)
-
-if not exist "%ICON_GENERATOR%" (
-    echo [ERROR] Missing source file: %ICON_GENERATOR%
-    exit /b 1
-)
+call :require_file "%SRC_CMD%" "launcher script" || goto fail_package
+call :require_file "%SRC_EXPLORER_CMD%" "Explorer helper script" || goto fail_package
+call :require_file "%SRC_PS1%" "PowerShell launcher script" || goto fail_package
+call :require_file "%ICON_GENERATOR%" "icon generator script" || goto fail_package
 
 where codex >nul 2>&1
 if errorlevel 1 (
     echo [ERROR] codex command was not found.
     echo         Install Codex CLI first, then rerun this installer.
     echo         Verify with: codex --version
-    exit /b 1
+    goto fail
 )
 
 if not exist "%USER_BIN%" (
     mkdir "%USER_BIN%" >nul 2>&1
     if errorlevel 1 (
         echo [ERROR] Failed to create user bin directory: %USER_BIN%
-        exit /b 1
+        echo         Check folder permissions or create it manually, then rerun install.bat.
+        goto fail
     )
 )
 
 copy /y "%SRC_CMD%" "%DST_CMD%" >nul
 if errorlevel 1 (
     echo [ERROR] Failed to copy launcher script to: %DST_CMD%
-    exit /b 1
+    goto fail
 )
 
 copy /y "%SRC_EXPLORER_CMD%" "%DST_EXPLORER_CMD%" >nul
 if errorlevel 1 (
     echo [ERROR] Failed to copy explorer launcher script to: %DST_EXPLORER_CMD%
-    exit /b 1
+    goto fail
 )
 
 copy /y "%SRC_PS1%" "%DST_PS1%" >nul
 if errorlevel 1 (
     echo [ERROR] Failed to copy PowerShell launcher script to: %DST_PS1%
-    exit /b 1
+    goto fail
 )
 
 powershell -NoProfile -ExecutionPolicy RemoteSigned -File "%ICON_GENERATOR%" -OutputPath "%DEFAULT_ICON%" >nul 2>&1
@@ -106,4 +95,28 @@ echo.
 echo Next step:
 echo   Run install-context-menu.bat to add right-click menus.
 echo.
-exit /b 0
+set "EXIT_CODE=0"
+goto finish
+
+:require_file
+if exist "%~1" exit /b 0
+echo [ERROR] Missing %~2: %~1
+exit /b 1
+
+:fail_package
+echo         Current package looks incomplete or outdated.
+echo         Please re-download the latest release and extract the whole zip before running install.bat.
+goto fail
+
+:fail
+echo.
+echo [INFO] Installer stopped. Review the message above, then rerun install.bat.
+set "EXIT_CODE=1"
+goto finish
+
+:finish
+if "%PAUSE_ON_EXIT%"=="1" (
+    echo Press any key to close this window...
+    pause >nul
+)
+exit /b %EXIT_CODE%
